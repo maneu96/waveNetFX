@@ -16,7 +16,10 @@ DistFxWaveNetAudioProcessorEditor::DistFxWaveNetAudioProcessorEditor (DistFxWave
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setSize (400, 300);
-    
+   
+    loadButton.setButtonText("LOAD MODEL");
+    addAndMakeVisible(&loadButton);
+    loadButton.addListener(this);
     // set graphic settings of knobs
     mainVolume.setSliderStyle(juce::Slider::Rotary);
     mainVolume.setRotaryParameters( juce::MathConstants<float>::pi + juce::MathConstants<float>::pi/6,  juce::MathConstants<float>::pi * 3  - juce::MathConstants<float>::pi/6, true);
@@ -56,10 +59,36 @@ void DistFxWaveNetAudioProcessorEditor::resized()
     const int rotaryWidth = getWidth()/ 2 - border;
     const int rotaryHeight = getHeight() - border - 100;
     mainVolume.setBounds(border, border, rotaryWidth,rotaryHeight);
+    
+    loadButton.setBounds(getWidth()/2, border, getWidth()/2, border);
+    
 }
 
 
 void DistFxWaveNetAudioProcessorEditor::sliderValueChanged(juce::Slider* slider)
 {
     audioProcessor.mainVolDb = mainVolume.getValue();
+}
+
+
+void DistFxWaveNetAudioProcessorEditor::buttonClicked(juce::Button *button)
+{
+    if (button == &loadButton)
+        loadButtonClicked();
+}
+
+void DistFxWaveNetAudioProcessorEditor::loadButtonClicked()
+{
+    myChooser = std::make_unique<FileChooser> ("Load a trained WaveNet model...",
+                         File::getSpecialLocation(File::userHomeDirectory),
+                                     "*.json");
+    auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
+    myChooser->launchAsync (folderChooserFlags, [this] (const FileChooser& chooser)
+    {
+        File file = chooser.getResult();
+        audioProcessor.loadConfig(file.getFullPathName());
+    });
+    
+    //File file("D:\Tese\WaveNetVA\Models\WaveNet3-muff.json");
+   
 }

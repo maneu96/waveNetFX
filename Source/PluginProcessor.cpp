@@ -11,6 +11,19 @@
 
 #include <chrono>
 
+const float sampleRate = 44100.0f; // Sampling rate in Hz
+const float frequency = 500.0f;    // Frequency in Hz
+static float t = 0.0f;             // Static time variable to maintain continuity between buffer fills
+
+void fillBuffer(float * buffer) {
+    for (int i = 0; i < 2054; ++i) {
+        buffer[i] = 0.5f * std::sin(2.0f * M_PI * frequency * t);
+        t += 1.0f / sampleRate;
+
+        // Reset t to prevent precision loss over time
+        if (t >= 1.0f) t -= 1.0f;
+    }
+}
 //==============================================================================
 DistFxWaveNetAudioProcessor::DistFxWaveNetAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -95,9 +108,32 @@ void DistFxWaveNetAudioProcessor::changeProgramName (int index, const juce::Stri
 //==============================================================================
 void DistFxWaveNetAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+   /*
+    float buffer[2054], results[10];
+    fillBuffer(buffer);
+    Eigen::Matrix<float,1,1> x;
+    auto model = RTNeural::json_parser::parseJson<float>(jsonStream, true);
+   
+    float x_in[4] = {0,0.03558885,0.07099716,0.10604533};
+    std::cout<< model ->forward(&x_in[0])<<std::endl;
+    std::cout<< model ->forward(&x_in[1])<<std::endl;
+    model->reset();
+    std::cout<< model ->forward(&x_in[2])<<std::endl;
+    std::cout<< model ->forward(&x_in[3])<<std::endl;
+    for(int i= 2044; i< 2054; i++){
+      //  cout << buffer[i] <<endl;
+    }
+    cout<< "END INPUT *****************************************************" <<endl << endl;
     auto start = std::chrono::high_resolution_clock::now();
-    for(int i= 0; i< 512; i++)
-        cNN.predict(1.0);
+    for(int i= 0; i< 2054; i++){
+        x(0) = 1;
+        if( i >=2045)
+        {
+            results[i%2045] = cNN.predict(x);
+            cout << results[i%2045] <<endl;
+            
+        }
+    }
     // Stop measuring time
      auto stop = std::chrono::high_resolution_clock::now();
      
@@ -105,12 +141,17 @@ void DistFxWaveNetAudioProcessor::prepareToPlay (double sampleRate, int samplesP
      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
      
     std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl;
-
-    cout << cNN.predict(1.0) << endl;
     //Use this method as the place to do any pre-playback
-    // initialisation that you need..\
-    //std::cout << cNN.outputLayer.outs << std::endl;
+    // initialisation that you need..
+    //std::cout << cNN.outputLayer.outs << std::endl; */
     std::cout << "Model Initialized" << std::endl;
+
+ //   cNN.processWavFile(juce::String("/Users/maneu/Downloads/x_true.wav"),juce::String("/Users/maneu/Downloads/y_pred_cpp.wav"));
+    
+    //double frequency = sampleRate * 0.5 * (1.0 - 0.95); // Calculate the cutoff frequency based on the coefficient
+    //sampleRate = 44100;
+    float frequency = 40;
+    highPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, frequency));
     
 }
 
@@ -151,8 +192,8 @@ void DistFxWaveNetAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    
-    float volLinear = pow(10,mainVolDb/20); // set the volume into linear scale
+    Eigen::Matrix<float,1,1> input;
+    float volLinear = pow(10,mainVolDb/20); //set the volume into linear scale
     //printf("%f\n", volLinear);
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -172,13 +213,18 @@ void DistFxWaveNetAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
 
     for (int channel = 0; channel < totalNumInputChannels; ++channel)
     {
-        auto * x = buffer.getReadPointer  (channel);
+        const float * x = buffer.getReadPointer  (channel);
+        //inputBuffer << buffer.getReadPointer(channel);
+        highPassFilter.processSamples(buffer.getWritePointer(channel), buffer.getNumSamples());
+        
         auto * y = buffer.getWritePointer (channel);
         for (auto n = 0; n < buffer.getNumSamples(); n++)
         {
-           
-            y[n] = volLinear * cNN.predict(x[n]);
-            //y[n] = x[n];
+            
+            //inputBuffer=Eigen::Map<const Eigen::Matrix<float, 1, 1>> (x);
+            input(0) = x[n];
+            y[n] = volLinear * cNN.predict(input);//Eigen::Map<Eigen::Matrix<float,1,1>> (x[n]));
+            //if cNN.samplesProcessed = 512//y[n] = x[n];
             //cout<< x[n]<<endl;
         }
     }
@@ -209,9 +255,15 @@ void DistFxWaveNetAudioProcessor::setStateInformation (const void* data, int siz
     // whose contents will have been created by the getStateInformation() call.
 }
 
+void DistFxWaveNetAudioProcessor::loadConfig(const String filePath){
+    cNN.loadLayers(filePath);
+}
+
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new DistFxWaveNetAudioProcessor();
 }
+
+

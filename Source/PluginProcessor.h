@@ -14,6 +14,7 @@
 //==============================================================================
 /**
 */
+void fillBuffer(float * buffer);
 class DistFxWaveNetAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -54,10 +55,18 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
-
+    
+    void loadConfig(const String filePath);
+    
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DistFxWaveNetAudioProcessor)
     waveNet cNN;
-    std::unique_ptr<RTNeural::Model<float>> neuralNet; // neuralNet[x]
+    
+    Eigen::Matrix<float,1,1> inputBuffer;
+    juce::IIRFilter highPassFilter;
+    
+    
+    
+    
 };

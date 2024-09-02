@@ -15,7 +15,8 @@
 /**
 */
 class DistFxWaveNetAudioProcessorEditor  : public juce::AudioProcessorEditor,
-                                           private juce::Slider::Listener //inheritance of slider listener class functionalities
+                                           private juce::Slider::Listener, //inheritance of slider listener class functionalities
+                                           private juce::Button::Listener
 {
 public:
     DistFxWaveNetAudioProcessorEditor (DistFxWaveNetAudioProcessor&);
@@ -33,6 +34,11 @@ private:
     // access the processor object that created it.
     DistFxWaveNetAudioProcessor& audioProcessor;
     juce::Slider mainVolume;
-
+    juce::TextButton loadButton;
+    
+    std::unique_ptr<FileChooser> myChooser;
+    
+    virtual void buttonClicked(juce::Button *button) override;
+    void loadButtonClicked();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DistFxWaveNetAudioProcessorEditor)
 };

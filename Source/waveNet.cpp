@@ -20,16 +20,16 @@ waveNet::waveNet()
  /*  : outGateBuffer(hiddenGateActivation[0].outs, 16),
      outFilterBuffer(hiddenFilterActivation[0].outs, 16)*/{
     // Initialize other layers
-    loadLayers();
+    //loadLayers();
 }
 waveNet::~waveNet(){
 };
 
 
-void waveNet::loadLayers(){
+void waveNet::loadLayers(const String fileName){
    /* std::ifstream jsonStream("/Users/maneu/Downloads/updated_conv1d_network_parameters.json"); */
     /* RTNeural::Conv1DT<float, 8, 4, 3, 2 > conv1D;*/
-    std::ifstream jsonStream("/Users/maneu/Downloads/ModelKeras.json");
+    std::ifstream jsonStream(fileName.toStdString());
     nlohmann::json j ;
     resetLayers();
     
@@ -49,60 +49,16 @@ void waveNet::loadLayers(){
         inputLayer.setBias( inputLayerJson.at("weights").at(1).get<std::vector<float>>());
         
         // Load HIDDEN LAYER WEIGHTS AND BIASES
-        
-        // Gate
-        //auto hiddenLayerGateJson = layersJson.at(1);
         int index = 1;
         loadHiddenLayers(index,layersJson);
-      /*  std::vector<std::vector<std::vector<float> > > weightsHiddenGateLayer (16,std::vector<std::vector<float> >(16,std::vector <float>(3,0)));
-    
-        
-       reDimension(hiddenLayerGateJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsHiddenGateLayer);
-        loadHiddenLayers(weightsHiddenGateLayer,hiddenLayerGateJson.at("weights").at(1).get<std::vector<float>>());*/
-       /* hiddenLayerGate[0].setWeights(weightsHiddenGateLayer);
-        hiddenLayerGate[0].setBias( hiddenLayerGateJson.at("weights").at(1).get<std::vector<float>>());*/
-    
-        // Filter
-   /*     auto hiddenLayerFilterJson = layersJson.at(2);
-        std::vector<std::vector<std::vector<float> > > weightsHiddenFilterLayer (16,std::vector<std::vector<float> >(16,std::vector <float>(3,0)));
-        reDimension(hiddenLayerFilterJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsHiddenFilterLayer);
-        hiddenLayerFilter[0].setWeights(weightsHiddenFilterLayer);
-        hiddenLayerFilter[0].setBias( hiddenLayerFilterJson.at("weights").at(1).get<std::vector<float>>()); */
-
-        
- /*       // Hidden
-        auto hiddenLayerResidualJson = layersJson.at(3);
-        std::vector<std::vector<std::vector<float> > > weightsHiddenLayerResidual (16,std::vector<std::vector<float> >(16,std::vector <float>(1,0)));
-        reDimension(hiddenLayerResidualJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsHiddenLayerResidual);
-        hiddenLayerResidual.setWeights(weightsHiddenLayerResidual);
-        hiddenLayerResidual.setBias( hiddenLayerResidualJson.at("weights").at(1).get<std::vector<float>>());
-        
-        
-        
-        //Hidden 2
-        // Gate
-        hiddenLayerGateJson = layersJson.at(4);
-
-        reDimension(hiddenLayerGateJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsHiddenGateLayer);
-        hiddenLayerGate[1].setWeights(weightsHiddenGateLayer);
-        hiddenLayerGate[1].setBias( hiddenLayerGateJson.at("weights").at(1).get<std::vector<float>>());
-    
-        // Filter
-        hiddenLayerFilterJson = layersJson.at(5);
-        reDimension(hiddenLayerFilterJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsHiddenFilterLayer);
-        hiddenLayerFilter[1].setWeights(weightsHiddenFilterLayer);
-        hiddenLayerFilter[1].setBias( hiddenLayerFilterJson.at("weights").at(1).get<std::vector<float>>());
-  */
         // Output
         auto outputLayerJson = layersJson.at(index);
         
-        std::vector<std::vector<std::vector<float> > > weightsOutputLayer (1,std::vector<std::vector<float> >(288,std::vector <float>(1,0)));
+        std::vector<std::vector<std::vector<float>>> weightsOutputLayer (1,std::vector<std::vector<float> >(288,std::vector <float>(1,0)));
 
         reDimension(outputLayerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsOutputLayer);
         outputLayer.setWeights(weightsOutputLayer);
         outputLayer.setBias(outputLayerJson.at("weights").at(1).get<std::vector<float>>());
-        
-   
     }
     else{
         std::cout << "Error opening File"<< std::endl;
@@ -245,17 +201,6 @@ void waveNet::loadHiddenLayers(int &iLayer,nlohmann::json layersJson ){
 }
 
 }
-float waveNet::predict(float x){
-    
-    float input[1] = {x};
-    inputLayer.forward(input);
-    for (int i = 0; i <= hiddenLayerDepth; ++i) {
-        hiddenLayerForward(i);
-    }
-    outputLayer.forward(zout);
-    return outputLayer.outs[0];
-}
-
 void waveNet::reDimension(std::vector<std::vector<std::vector<float>>> source,
                           std::vector<std::vector<std::vector<float>>> &destination) {
     
@@ -287,10 +232,25 @@ void waveNet::reDimension(std::vector<std::vector<std::vector<float>>> source,
 }
 
 
+float waveNet::predict(Eigen::Matrix<float,1,1> x){
+  //  if (samplesProcessed > N_SAMPLES -1 ){
+   //     samplesProcessed = 0;
+    //    resetLayers();
+  //  }// reset state if samplesProcessed > receptive field
+    inputLayer.forward(x);
+    for (int i = 0; i <= hiddenLayerDepth; ++i) {
+        hiddenLayerForward(i);
+    }
+    outputLayer.forward(zout);
+//    ++samplesProcessed; // update
+    return outputLayer.outs.data()[0];
+}
+
+
 void waveNet::hiddenLayerForward (uint index){
     //float inputHiddenLayer[16];
     int repeat  = 2 * index/hiddenLayerDepth;
-    Eigen::Map<Eigen::Matrix<float,16,1>> inputLayerOut(inputLayer.outs,16);
+    //Eigen::Map<Eigen::Matrix<float,16,1>> inputLayerOut(inputLayer.outs,16);
     if (index == 0){
         
        gate_1[0].forward(inputLayer.outs);
@@ -301,97 +261,84 @@ void waveNet::hiddenLayerForward (uint index){
     else{
         
         //Mapping the gate and filter outputs
-        new(&outGateBuffer) Eigen::Map<Eigen::Matrix<float,16,1>> (hiddenGateActivation[index-1].outs,16);
-        new(&outFilterBuffer) Eigen::Map<Eigen::Matrix<float,16,1>>(hiddenFilterActivation[index-1].outs,16);
-        //Elementwise multiplication
-        outGateBuffer = outGateBuffer.cwiseProduct(outFilterBuffer);
+        outGateBuffer = (hiddenGateActivation[index-1].outs).cwiseProduct(hiddenFilterActivation[index-1].outs);
         //Saving the output
-        Eigen::Map<Eigen::Matrix<float,16,1>> (zout + 16*(index-1),16)= outGateBuffer;
-        //cout<< outGateBuffer<< endl;
-        
+        Eigen::Map<Eigen::Matrix<float,N_CHANNELS,1>> (zout.data() + N_CHANNELS*(index-1),N_CHANNELS)= outGateBuffer;
         if (index == hiddenLayerDepth){
             return;
         }
-        //Casting to float
-        
-        Eigen::Map<Eigen::Matrix<float,16,1>>(inputHiddenLayer,16) = outGateBuffer;
-        
         // Performing forward inference in the residual layer
-        hiddenLayerResidual[index-1].forward(inputHiddenLayer); //hiddenLayerResidual[index-1].forward
-        //Mapping,16
-        // Mapping the output of the residual layer
-        Eigen::Map<Eigen::Matrix<float,16,1>> outResidual(hiddenLayerResidual[index-1].outs,16); //hiddenLayerResidual[index-1].outs
+        hiddenLayerResidual[index-1].forward(outGateBuffer); 
         // Residual operation to derive this layer's input
-        Eigen::Map<Eigen::Matrix<float,16,1>>(inputHiddenLayer,16) = outResidual + inputLayerOut ;
+        outGateBuffer += hiddenLayerResidual[index-1].outs ; // + inputLayer.outs ;
         
         switch (index) {
             case 1:
             case 10:// dilation = 2
-                gate_2[repeat].forward(inputHiddenLayer);
+                gate_2[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_2[repeat].outs);
-                filter_2[repeat].forward(inputHiddenLayer);
+                filter_2[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_2[repeat].outs);
                 break;
             case 2:
             case 11:
-                gate_4[repeat].forward(inputHiddenLayer);
+                gate_4[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_4[repeat].outs);
-                filter_4[repeat].forward(inputHiddenLayer);
+                filter_4[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_4[repeat].outs);
                 break;
             case 3:
             case 12:
-                gate_8[repeat].forward(inputHiddenLayer);
+                gate_8[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_8[repeat].outs);
-                filter_8[repeat].forward(inputHiddenLayer);
+                filter_8[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_8[repeat].outs);
                 break;
             case 4:
             case 13:
-                gate_16[repeat].forward(inputHiddenLayer);
+                gate_16[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_16[repeat].outs);
-                filter_16[repeat].forward(inputHiddenLayer);
+                filter_16[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_16[repeat].outs);
                 break;
             case 5:
             case 14:
-                gate_32[repeat].forward(inputHiddenLayer);
+                gate_32[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_32[repeat].outs);
-                filter_32[repeat].forward(inputHiddenLayer);
+                filter_32[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_32[repeat].outs);
                 break;
             case 6:
             case 15:
-                gate_64[repeat].forward(inputHiddenLayer);
+                gate_64[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_64[repeat].outs);
-                filter_64[repeat].forward(inputHiddenLayer);
+                filter_64[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_64[repeat].outs);
                 break;
             case 7:
             case 16:
-                gate_128[repeat].forward(inputHiddenLayer);
+                gate_128[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_128[repeat].outs);
-                filter_128[repeat].forward(inputHiddenLayer);
+                filter_128[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_128[repeat].outs);
                 break;
             case 8:
             case 17:
-                gate_256[repeat].forward(inputHiddenLayer);
+                gate_256[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_256[repeat].outs);
-                filter_256[repeat].forward(inputHiddenLayer);
+                filter_256[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_256[repeat].outs);
                 break;
             case 9:
-                gate_1[repeat].forward(inputHiddenLayer);
+                gate_1[repeat].forward(outGateBuffer);
                 hiddenGateActivation[index].forward(gate_1[repeat].outs);
-                filter_1[repeat].forward(inputHiddenLayer);
+                filter_1[repeat].forward(outGateBuffer);
                 hiddenFilterActivation[index].forward(filter_1[repeat].outs);
                 break;
         }
         
     }
 }
-
 
 void waveNet::resetLayers(){
     inputLayer.reset();
@@ -425,3 +372,40 @@ void waveNet::resetLayers(){
 
 }
 
+
+// Function to read, process, and save a WAV file
+void waveNet::processWavFile(const juce::String& inputFilePath, const juce::String& outputFilePath) {
+    Eigen::Matrix<float,1,1> x;
+    juce::AudioFormatManager formatManager;
+    formatManager.registerBasicFormats();
+
+    std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(inputFilePath));
+
+    if (reader != nullptr) {
+        juce::AudioBuffer<float> buffer(reader->numChannels, reader->lengthInSamples);
+        reader->read(&buffer, 0, reader->lengthInSamples, 0, true, true);
+
+        // Process the audio buffer
+        //processAudioBuffer(buffer);
+        // Example processing: Invert the phase of the audio
+          for (int channel = 0; channel < buffer.getNumChannels(); ++channel) {
+              for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
+                  x(0) = buffer.getSample(channel, sample);
+                  buffer.setSample(channel, sample, predict(x));
+              }
+          }
+        // Write the processed buffer to a new file
+        std::unique_ptr<juce::FileOutputStream> fileStream(new juce::FileOutputStream(outputFilePath));
+        if (fileStream != nullptr && fileStream->openedOk()) {
+            juce::WavAudioFormat wavFormat;
+            std::unique_ptr<juce::AudioFormatWriter> writer(wavFormat.createWriterFor(fileStream.get(), reader->sampleRate, buffer.getNumChannels(), 16, {}, 0));
+
+            if (writer != nullptr) {
+                writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
+                fileStream.release(); // (passes responsibility for deleting the stream to the writer object that is now using it)
+            }
+        }
+    } else {
+        juce::Logger::writeToLog("Could not open file for reading: " + inputFilePath);
+    }
+}
