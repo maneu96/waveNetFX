@@ -28,7 +28,7 @@ waveNet::~waveNet(){
 
 void waveNet::loadLayers(const String fileName){
    /* std::ifstream jsonStream("/Users/maneu/Downloads/updated_conv1d_network_parameters.json"); */
-    /* RTNeural::Conv1DT<float, 8, 4, 3, 2 > conv1D;*/
+    /* RTNeural::Conv1DT<double, 8, 4, 3, 2 > conv1D;*/
     std::ifstream jsonStream(fileName.toStdString());
     nlohmann::json j ;
     resetLayers();
@@ -41,12 +41,12 @@ void waveNet::loadLayers(const String fileName){
         
         // LOAD weights and Biases Input layer
         auto inputLayerJson = layersJson.at(0);
-        std::vector<std::vector<std::vector<float> > > weightsInputLayer (16,std::vector<std::vector<float> >(1,std::vector <float>(1,0)));
+        std::vector<std::vector<std::vector<double> > > weightsInputLayer (16,std::vector<std::vector<double> >(1,std::vector <double>(1,0)));
 
-        reDimension(inputLayerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsInputLayer);
+        reDimension(inputLayerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weightsInputLayer);
     
         inputLayer.setWeights(weightsInputLayer);
-        inputLayer.setBias( inputLayerJson.at("weights").at(1).get<std::vector<float>>());
+        inputLayer.setBias( inputLayerJson.at("weights").at(1).get<std::vector<double>>());
         
         // Load HIDDEN LAYER WEIGHTS AND BIASES
         int index = 1;
@@ -54,11 +54,11 @@ void waveNet::loadLayers(const String fileName){
         // Output
         auto outputLayerJson = layersJson.at(index);
         
-        std::vector<std::vector<std::vector<float>>> weightsOutputLayer (1,std::vector<std::vector<float> >(288,std::vector <float>(1,0)));
+        std::vector<std::vector<std::vector<double>>> weightsOutputLayer (1,std::vector<std::vector<double> >(288,std::vector <double>(1,0)));
 
-        reDimension(outputLayerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsOutputLayer);
+        reDimension(outputLayerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weightsOutputLayer);
         outputLayer.setWeights(weightsOutputLayer);
-        outputLayer.setBias(outputLayerJson.at("weights").at(1).get<std::vector<float>>());
+        outputLayer.setBias(outputLayerJson.at("weights").at(1).get<std::vector<double>>());
     }
     else{
         std::cout << "Error opening File"<< std::endl;
@@ -74,116 +74,116 @@ void waveNet::loadHiddenLayers(int &iLayer,nlohmann::json layersJson ){
         auto layerJson = layersJson.at(iLayer);
         int dilationSelector = layerJson.at("dilation").at(0).get<int>();
         
-        std::vector<std::vector<std::vector<float> > > weights (16,std::vector<std::vector<float> >(16,std::vector <float>(3,0)));
-        reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+        std::vector<std::vector<std::vector<double> > > weights (16,std::vector<std::vector<double> >(16,std::vector <double>(3,0)));
+        reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
         
         
         switch (dilationSelector) {
             case 1:
                 gate_1[repeat].setWeights(weights);
-                gate_1[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_1[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_1[repeat].setWeights(weights);
-                filter_1[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_1[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 2:
                 gate_2[repeat].setWeights(weights);
-                gate_2[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_2[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_2[repeat].setWeights(weights);
-                filter_2[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_2[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 4:
                 gate_4[repeat].setWeights(weights);
-                gate_4[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_4[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_4[repeat].setWeights(weights);
-                filter_4[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_4[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 8:
                 gate_8[repeat].setWeights(weights);
-                gate_8[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_8[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_8[repeat].setWeights(weights);
-                filter_8[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_8[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 16:
                 gate_16[repeat].setWeights(weights);
-                gate_16[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_16[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_16[repeat].setWeights(weights);
-                filter_16[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_16[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 32:
                 gate_32[repeat].setWeights(weights);
-                gate_32[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_32[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_32[repeat].setWeights(weights);
-                filter_32[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_32[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 64:
                 gate_64[repeat].setWeights(weights);
-                gate_64[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_64[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_64[repeat].setWeights(weights);
-                filter_64[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_64[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 128:
                 gate_128[repeat].setWeights(weights);
-                gate_128[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_128[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_128[repeat].setWeights(weights);
-                filter_128[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_128[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
             case 256:
                 gate_256[repeat].setWeights(weights);
-                gate_256[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                gate_256[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 
                 layerJson = layersJson.at(iLayer);
-                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weights);
+                reDimension(layerJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weights);
                 filter_256[repeat].setWeights(weights);
-                filter_256[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<float>>());
+                filter_256[repeat].setBias(layerJson.at("weights").at(1).get<std::vector<double>>());
                 ++iLayer;
                 break;
             
@@ -193,16 +193,16 @@ void waveNet::loadHiddenLayers(int &iLayer,nlohmann::json layersJson ){
         return;
     // Hidden
          auto hiddenLayerResidualJson = layersJson.at(iLayer);
-         std::vector<std::vector<std::vector<float> > > weightsHiddenLayerResidual (16,std::vector<std::vector<float> >(16,std::vector <float>(1,0)));
-         reDimension(hiddenLayerResidualJson.at("weights").at(0).get<std::vector<std::vector<std::vector<float>>>>(), weightsHiddenLayerResidual);
+         std::vector<std::vector<std::vector<double> > > weightsHiddenLayerResidual (16,std::vector<std::vector<double> >(16,std::vector <double>(1,0)));
+         reDimension(hiddenLayerResidualJson.at("weights").at(0).get<std::vector<std::vector<std::vector<double>>>>(), weightsHiddenLayerResidual);
          hiddenLayerResidual[index].setWeights(weightsHiddenLayerResidual);
-         hiddenLayerResidual[index].setBias( hiddenLayerResidualJson.at("weights").at(1).get<std::vector<float>>());
+         hiddenLayerResidual[index].setBias( hiddenLayerResidualJson.at("weights").at(1).get<std::vector<double>>());
     ++iLayer;
 }
 
 }
-void waveNet::reDimension(std::vector<std::vector<std::vector<float>>> source,
-                          std::vector<std::vector<std::vector<float>>> &destination) {
+void waveNet::reDimension(std::vector<std::vector<std::vector<double>>> source,
+                          std::vector<std::vector<std::vector<double>>> &destination) {
     
     // Assuming source dimensions are 1x15x16
     size_t sourceDepth = source.size();
@@ -232,7 +232,7 @@ void waveNet::reDimension(std::vector<std::vector<std::vector<float>>> source,
 }
 
 
-float waveNet::predict(Eigen::Matrix<float,1,1> x){
+double waveNet::predict(Eigen::Matrix<double,1,1> x){
   //  if (samplesProcessed > N_SAMPLES -1 ){
    //     samplesProcessed = 0;
     //    resetLayers();
@@ -248,22 +248,20 @@ float waveNet::predict(Eigen::Matrix<float,1,1> x){
 
 
 void waveNet::hiddenLayerForward (uint index){
-    //float inputHiddenLayer[16];
+    //double inputHiddenLayer[16];
     int repeat  = 2 * index/hiddenLayerDepth;
-    //Eigen::Map<Eigen::Matrix<float,16,1>> inputLayerOut(inputLayer.outs,16);
+    //Eigen::Map<Eigen::Matrix<double,16,1>> inputLayerOut(inputLayer.outs,16);
     if (index == 0){
-        
        gate_1[0].forward(inputLayer.outs);
        hiddenGateActivation[0].forward(gate_1[0].outs);
        filter_1[0].forward(inputLayer.outs);
        hiddenFilterActivation[0].forward(filter_1[0].outs);
     }
     else{
-        
         //Mapping the gate and filter outputs
         outGateBuffer = (hiddenGateActivation[index-1].outs).cwiseProduct(hiddenFilterActivation[index-1].outs);
         //Saving the output
-        Eigen::Map<Eigen::Matrix<float,N_CHANNELS,1>> (zout.data() + N_CHANNELS*(index-1),N_CHANNELS)= outGateBuffer;
+        Eigen::Map<Eigen::Matrix<double,N_CHANNELS,1>> (zout.data() + N_CHANNELS*(index-1),N_CHANNELS)= outGateBuffer;
         if (index == hiddenLayerDepth){
             return;
         }
@@ -375,7 +373,7 @@ void waveNet::resetLayers(){
 
 // Function to read, process, and save a WAV file
 void waveNet::processWavFile(const juce::String& inputFilePath, const juce::String& outputFilePath) {
-    Eigen::Matrix<float,1,1> x;
+    Eigen::Matrix<double,1,1> x;
     juce::AudioFormatManager formatManager;
     formatManager.registerBasicFormats();
 

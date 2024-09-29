@@ -48,8 +48,8 @@
 namespace ProjectInfo
 {
     const char* const  projectName    = "waveNetFx";
-    const char* const  companyName    = "";
-    const char* const  versionString  = "1.0.0";
-    const int          versionNumber  = 0x10000;
+    const char* const  companyName    = "MFSound";
+    const char* const  versionString  = "2.0.0";
+    const int          versionNumber  = 0x20000;
 }
 #endif

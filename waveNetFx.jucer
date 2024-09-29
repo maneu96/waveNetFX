@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="PDcdDn" name="waveNetFx" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1">
+              addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1"
+              companyName="MFSound" version="2.0.0">
   <MAINGROUP id="tU0Lns" name="waveNetFx">
     <GROUP id="{C5781682-DFEB-9E77-F136-2CF2663FE6EF}" name="Source">
+      <FILE id="aVxr5Y" name="ThreePointKnob.cpp" compile="1" resource="0"
+            file="Source/ThreePointKnob.cpp"/>
+      <FILE id="bQipcd" name="ThreePointKnob.hpp" compile="0" resource="0"
+            file="Source/ThreePointKnob.hpp"/>
       <GROUP id="{33BF1804-7363-E62C-85FD-693CBE7B56F2}" name="modules">
         <GROUP id="{2B982E92-4256-E7C2-2AED-8DF6DAA7B8D7}" name="Eigen">
           <GROUP id="{869FFC0E-CD0D-D64A-C667-28F8D08F7E37}" name="Eigen">
@@ -811,11 +816,12 @@
   </MODULES>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" microphonePermissionNeeded="1">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="waveNetFx" targetName="waveNetFx" optimisation="6"
+        <CONFIGURATION isDebug="0" name="waveNetFx" targetName="waveNetFx" optimisation="6"
                        linkTimeOptimisation="1" defines="RTNEURAL_USE_EIGEN=1&#10;EIGEN_STACK_ALLOCATION_LIMIT = 0&#10;RTNEURAL_DEFAULT_ALIGNMENT=32"
-                       headerPath="/Users/maneu/Desktop/Tese/Wavenet2023/waveNetFX/waveNetFx/Source/modules/Eigen&#10;&#10;/Users/maneu/Desktop/Tese/Wavenet2023/waveNetFX/waveNetFx/Source/AudioFile"/>
+                       headerPath="/Users/maneu/Desktop/Tese/Wavenet2023/waveNetFX/waveNetFx/Source/modules/Eigen&#10;&#10;/Users/maneu/Desktop/Tese/Wavenet2023/waveNetFX/waveNetFx/Source/AudioFile"
+                       vst3BinaryLocation="$(HOME)/Library/Audio/Plug-Ins/VST3" auBinaryLocation="$(HOME)/Library/Audio/Plug-Ins/Components"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../JUCE-2/modules"/>

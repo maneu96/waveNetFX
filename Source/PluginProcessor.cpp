@@ -11,6 +11,7 @@
 
 #include <chrono>
 
+const double gainCorrection = 0.5; // -3 dB to compensate for high gain
 const float sampleRate = 44100.0f; // Sampling rate in Hz
 const float frequency = 500.0f;    // Frequency in Hz
 static float t = 0.0f;             // Static time variable to maintain continuity between buffer fills
@@ -150,7 +151,7 @@ void DistFxWaveNetAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     
     //double frequency = sampleRate * 0.5 * (1.0 - 0.95); // Calculate the cutoff frequency based on the coefficient
     //sampleRate = 44100;
-    float frequency = 40;
+    float frequency = 100;
     highPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, frequency));
     
 }
@@ -192,7 +193,7 @@ void DistFxWaveNetAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    Eigen::Matrix<float,1,1> input;
+    Eigen::Matrix<double,1,1> input;
     float volLinear = pow(10,mainVolDb/20); //set the volume into linear scale
     //printf("%f\n", volLinear);
     // In case we have more outputs than inputs, this code clears any output
@@ -223,7 +224,8 @@ void DistFxWaveNetAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
             
             //inputBuffer=Eigen::Map<const Eigen::Matrix<float, 1, 1>> (x);
             input(0) = x[n];
-            y[n] = volLinear * cNN.predict(input);//Eigen::Map<Eigen::Matrix<float,1,1>> (x[n]));
+            y[n] = gainCorrection * volLinear * cNN[discreteGainSelector].predict(input);//Eigen::Map<Eigen::Matrix<float,1,1>> (x[n]));
+            // y[n] = (1-gainBlend)*input + gainBlend * gainCorrection * volLinear *cNN[discreteGainSelector].predict(input);
             //if cNN.samplesProcessed = 512//y[n] = x[n];
             //cout<< x[n]<<endl;
         }
@@ -255,8 +257,9 @@ void DistFxWaveNetAudioProcessor::setStateInformation (const void* data, int siz
     // whose contents will have been created by the getStateInformation() call.
 }
 
-void DistFxWaveNetAudioProcessor::loadConfig(const String filePath){
-    cNN.loadLayers(filePath);
+void DistFxWaveNetAudioProcessor::loadConfig(const String filePath){ //Here the 3 networks are loaded
+    for(int i = 0; i < 3; i++)
+        cNN[i].loadLayers(filePath);
 }
 
 //==============================================================================

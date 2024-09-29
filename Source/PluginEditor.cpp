@@ -24,15 +24,37 @@ DistFxWaveNetAudioProcessorEditor::DistFxWaveNetAudioProcessorEditor (DistFxWave
     mainVolume.setSliderStyle(juce::Slider::Rotary);
     mainVolume.setRotaryParameters( juce::MathConstants<float>::pi + juce::MathConstants<float>::pi/6,  juce::MathConstants<float>::pi * 3  - juce::MathConstants<float>::pi/6, true);
     mainVolume.setRange(-18.0, 18.0);
-    mainVolume.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 10);
+    mainVolume.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mainVolume.getWidth()/2, mainVolume.getHeight()/8);
     mainVolume.setPopupDisplayEnabled(true, false, this);
     mainVolume.setTextValueSuffix(" dB");
     mainVolume.setValue(0.0);
     // set visibility on the GUI
     addAndMakeVisible(&mainVolume);
-    
     //add listener to the slider
     mainVolume.addListener(this);
+    
+    //add discrete gain knob
+    discreteGain.setSliderStyle(juce::Slider::Rotary);
+    //discreteGain.setRotaryParameters(<#RotaryParameters newParameters#>)
+    discreteGain.setRange(0,2,1);
+    discreteGain.setRotaryParameters( juce::MathConstants<float>::pi + juce::MathConstants<float>::pi/6,  juce::MathConstants<float>::pi * 3  - juce::MathConstants<float>::pi/6, true);
+    discreteGain.setValue(0);
+    discreteGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, discreteGain.getWidth()/2, discreteGain.getHeight()/8);
+    discreteGain.setPopupDisplayEnabled(true, false, this);
+    addAndMakeVisible(&discreteGain);
+    discreteGain.addListener(this);
+   // addAndMakeVisible(threePointKnob);
+    
+    //add blend knob
+    blendGain.setSliderStyle(juce::Slider::Rotary);
+    blendGain.setRange(0,1);
+    blendGain.setRotaryParameters(juce::MathConstants<float>::pi + juce::MathConstants<float>::pi/6,  juce::MathConstants<float>::pi * 3  - juce::MathConstants<float>::pi/6, true);
+    blendGain.setValue(0);
+    blendGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, blendGain.getWidth()/2, blendGain.getHeight()/8);
+    blendGain.setPopupDisplayEnabled(true, false, this);
+    addAndMakeVisible(&blendGain);
+    blendGain.addListener(this);
+
 }
 
 DistFxWaveNetAudioProcessorEditor::~DistFxWaveNetAudioProcessorEditor()
@@ -47,7 +69,7 @@ void DistFxWaveNetAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("Main Volume", 200,100,200,20,juce::Justification::centred, 1);
+   // g.drawFittedText ("Main Volume", 200,100,200,20,juce::Justification::centred, 1);
 }
 
 void DistFxWaveNetAudioProcessorEditor::resized()
@@ -55,12 +77,16 @@ void DistFxWaveNetAudioProcessorEditor::resized()
 
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    const int border = 20;
-    const int rotaryWidth = getWidth()/ 2 - border;
-    const int rotaryHeight = getHeight() - border - 100;
-    mainVolume.setBounds(border, border, rotaryWidth,rotaryHeight);
+    const int border = 5 ;
+    const int rotaryWidth = getWidth()/3;
+    const int rotaryHeight = getHeight()/3 ;
+    mainVolume.setBounds(rotaryWidth/2 + border, rotaryHeight/2 + border, rotaryWidth,rotaryHeight);
+    discreteGain.setBounds(getWidth()/2 + border , rotaryHeight/2 + border, rotaryWidth, rotaryHeight);
+    blendGain.setBounds(getWidth()/2 - rotaryWidth/2 ,getHeight()/2 + border, rotaryWidth, rotaryHeight);
     
-    loadButton.setBounds(getWidth()/2, border, getWidth()/2, border);
+    const int loadButtonWidth = getWidth()/2;
+    const int loadButtonHeight = getHeight()/10;
+    loadButton.setBounds(getWidth()/2 - loadButtonWidth/2 , loadButtonHeight/2 , loadButtonWidth, loadButtonHeight );
     
 }
 
@@ -68,6 +94,8 @@ void DistFxWaveNetAudioProcessorEditor::resized()
 void DistFxWaveNetAudioProcessorEditor::sliderValueChanged(juce::Slider* slider)
 {
     audioProcessor.mainVolDb = mainVolume.getValue();
+    audioProcessor.discreteGainSelector = discreteGain.getValue();
+    audioProcessor.blendGain = discreteGain.getValue();
 }
 
 
