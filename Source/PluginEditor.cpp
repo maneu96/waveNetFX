@@ -24,9 +24,10 @@ DistFxWaveNetAudioProcessorEditor::DistFxWaveNetAudioProcessorEditor (DistFxWave
     mainVolume.setSliderStyle(juce::Slider::Rotary);
     mainVolume.setRotaryParameters( juce::MathConstants<float>::pi + juce::MathConstants<float>::pi/6,  juce::MathConstants<float>::pi * 3  - juce::MathConstants<float>::pi/6, true);
     mainVolume.setRange(-18.0, 18.0);
-    mainVolume.setTextBoxStyle(juce::Slider::NoTextBox, false, mainVolume.getWidth()/2, mainVolume.getHeight()/8);
-    mainVolume.setPopupDisplayEnabled(true, false, this);
-    mainVolume.setTextValueSuffix(" dB");
+    mainVolume.setTextBoxStyle(juce::Slider::TextBoxBelow, false, mainVolume.getWidth()/2, mainVolume.getHeight()/8);
+    //mainVolume.setPopupDisplayEnabled(true, false, this);
+    
+    //mainVolume.setTextValueSuffix(" dB");
     mainVolume.setValue(0.0);
     // set visibility on the GUI
     addAndMakeVisible(&mainVolume);
@@ -35,7 +36,7 @@ DistFxWaveNetAudioProcessorEditor::DistFxWaveNetAudioProcessorEditor (DistFxWave
     
     // Set up the volume label
     addAndMakeVisible(mainVolumeLabel);
-    mainVolumeLabel.setText("Volume", juce::dontSendNotification);
+    mainVolumeLabel.setText("Volume [dB]", juce::dontSendNotification);
     mainVolumeLabel.setJustificationType(juce::Justification::centred);
     mainVolumeLabel.attachToComponent(&mainVolume, false);
     
@@ -47,8 +48,8 @@ DistFxWaveNetAudioProcessorEditor::DistFxWaveNetAudioProcessorEditor (DistFxWave
     discreteGain.setRange(0,2,1);
     discreteGain.setRotaryParameters( juce::MathConstants<float>::pi + juce::MathConstants<float>::pi/6,  juce::MathConstants<float>::pi * 3  - juce::MathConstants<float>::pi/6, true);
     discreteGain.setValue(0);
-    discreteGain.setTextBoxStyle(juce::Slider::NoTextBox, false, discreteGain.getWidth()/2, discreteGain.getHeight()/8);
-    discreteGain.setPopupDisplayEnabled(true, false, this);
+    discreteGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, discreteGain.getWidth()/2, discreteGain.getHeight()/8);
+   // discreteGain.setPopupDisplayEnabled(true, false, this);
 
     addAndMakeVisible(&discreteGain);
     discreteGain.addListener(this);
@@ -65,8 +66,8 @@ DistFxWaveNetAudioProcessorEditor::DistFxWaveNetAudioProcessorEditor (DistFxWave
     blendGain.setRange(0,1);
     blendGain.setRotaryParameters(juce::MathConstants<float>::pi + juce::MathConstants<float>::pi/6,  juce::MathConstants<float>::pi * 3  - juce::MathConstants<float>::pi/6, true);
     blendGain.setValue(0);
-    blendGain.setTextBoxStyle(juce::Slider::NoTextBox, false, blendGain.getWidth()/2, blendGain.getHeight()/8);
-    blendGain.setPopupDisplayEnabled(true, false, this);
+    blendGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, blendGain.getWidth()/2, blendGain.getHeight()/8);
+    //blendGain.setPopupDisplayEnabled(true, false, this);
     blendGain.setName("Dry/Wet"); // Set the description
     
     addAndMakeVisible(&blendGain);
