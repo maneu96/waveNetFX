@@ -109,7 +109,7 @@ void DistFxWaveNetAudioProcessorEditor::resized()
     blendGain.setBounds(getWidth()/2 - rotaryWidth/2 ,getHeight()/2 + border, rotaryWidth, rotaryHeight);
     
     const int loadButtonWidth = getWidth()/2;
-    const int loadButtonHeight = getHeight()/10;
+    const int loadButtonHeight = getHeight()/15;
     loadButton.setBounds(getWidth()/2 - loadButtonWidth/2 , loadButtonHeight/2 , loadButtonWidth, loadButtonHeight );
     
 }
@@ -119,7 +119,7 @@ void DistFxWaveNetAudioProcessorEditor::sliderValueChanged(juce::Slider* slider)
 {
     audioProcessor.mainVolDb = mainVolume.getValue();
     audioProcessor.discreteGainSelector = discreteGain.getValue();
-    audioProcessor.blendGain = discreteGain.getValue();
+    audioProcessor.blendGain = blendGain.getValue();
 }
 
 
@@ -134,7 +134,9 @@ void DistFxWaveNetAudioProcessorEditor::loadButtonClicked()
     myChooser = std::make_unique<FileChooser> ("Load a trained WaveNet model...",
                          File::getSpecialLocation(File::userHomeDirectory),
                                      "*.json");
-    auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
+    
+   // auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles;
+    auto folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
     myChooser->launchAsync (folderChooserFlags, [this] (const FileChooser& chooser)
     {
         File file = chooser.getResult();

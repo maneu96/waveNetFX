@@ -151,7 +151,7 @@ void DistFxWaveNetAudioProcessor::prepareToPlay (double sampleRate, int samplesP
     
     //double frequency = sampleRate * 0.5 * (1.0 - 0.95); // Calculate the cutoff frequency based on the coefficient
     //sampleRate = 44100;
-    float frequency = 100;
+    float frequency = 40;
     highPassFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, frequency));
     
 }
@@ -194,7 +194,7 @@ void DistFxWaveNetAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     Eigen::Matrix<double,1,1> input;
-    float volLinear = pow(10,mainVolDb/20); //set the volume into linear scale
+    double volLinear = pow(10,mainVolDb/20); //set the volume into linear scale
     //printf("%f\n", volLinear);
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -217,15 +217,14 @@ void DistFxWaveNetAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer
         const float * x = buffer.getReadPointer  (channel);
         //inputBuffer << buffer.getReadPointer(channel);
         highPassFilter.processSamples(buffer.getWritePointer(channel), buffer.getNumSamples());
-        
         auto * y = buffer.getWritePointer (channel);
         for (auto n = 0; n < buffer.getNumSamples(); n++)
         {
             
-            //inputBuffer=Eigen::Map<const Eigen::Matrix<float, 1, 1>> (x);
+            //inputBuffer=Eigen::Map<const E igen::Matrix<float, 1, 1>> (x);
             input(0) = x[n];
-            y[n] = gainCorrection * volLinear * cNN[discreteGainSelector].predict(input);//Eigen::Map<Eigen::Matrix<float,1,1>> (x[n]));
-            // y[n] = (1-gainBlend)*input + gainBlend * gainCorrection * volLinear *cNN[discreteGainSelector].predict(input);
+            //y[n] = gainCorrection * volLinear * cNN[discreteGainSelector].predict(input);//Eigen::Map<Eigen::Matrix<float,1,1>> (x[n]));
+            y[n] = (1-blendGain)*input(0) + blendGain * gainCorrection * volLinear *cNN[discreteGainSelector].predict(input);
             //if cNN.samplesProcessed = 512//y[n] = x[n];
             //cout<< x[n]<<endl;
         }
@@ -258,8 +257,11 @@ void DistFxWaveNetAudioProcessor::setStateInformation (const void* data, int siz
 }
 
 void DistFxWaveNetAudioProcessor::loadConfig(const String filePath){ //Here the 3 networks are loaded
-    for(int i = 0; i < 3; i++)
-        cNN[i].loadLayers(filePath);
+    // /Users/maneu/Documents/WaveNetModels/ERD/model_0.json
+    for(int i = 0; i < 3; i++){
+        //std::cout << "Loaded Model: " + filePath + "/model_" + std::to_string(i*50) + ".json" << std::endl;
+        cNN[i].loadLayers(filePath + "/model_" + std::to_string(i*50) + ".json");
+    }
 }
 
 //==============================================================================
