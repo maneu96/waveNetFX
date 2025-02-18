@@ -22,9 +22,9 @@ public:
     DistFxWaveNetAudioProcessor();
     ~DistFxWaveNetAudioProcessor() override;
     
-    double mainVolDb;
+    float mainVolDb;
     int discreteGainSelector;
-    double blendGain;
+    float blendGain;
     String folderPath;
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -35,7 +35,7 @@ public:
    #endif
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-
+    
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -66,7 +66,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DistFxWaveNetAudioProcessor)
     waveNet cNN[3];
     
-    Eigen::Matrix<float,1,1> inputBuffer;
+    //Eigen::Matrix<float,N_SAMPLES,1> inputBuffer;
     juce::IIRFilter highPassFilter;
     
     

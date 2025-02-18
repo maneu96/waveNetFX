@@ -10,21 +10,18 @@
 
 #pragma once
 #include "RTNeural/RTNeural.h"
-#include <JuceHeader.h>
-#include "../Source/modules/Eigen/Eigen/Eigen"
-
-
+#include "/Users/maneu/Desktop/Tese/Wavenet2023/waveNetFX/waveNetFx/JuceLibraryCode/JuceHeader.h"
+#include "./modules/Eigen/Eigen/Eigen"
 #include <iostream>
+#include <string>
 
 #define N_CHANNELS 16
-#define N_SAMPLES 2045
+#define N_SAMPLES 1
 #define KERNEL_SIZE 3
 #define GROUPS 1
 #define DYN_STATE true
 
-
-
-std::unique_ptr<RTNeural::Model<double>> initWaveNet();
+std::unique_ptr<RTNeural::Model<float>> initWaveNet();
 using namespace RTNeural;
 using namespace std;
 
@@ -33,12 +30,11 @@ class waveNet {
 public:
     waveNet();
     ~waveNet();
-    void loadLayers(const String fileName);
-    double predict(Eigen::Matrix<double,1,1> x);
-    void reDimension(std::vector<std::vector<std::vector<double>>> source,
-                              std::vector<std::vector<std::vector<double>>> &destination);
-   
-    void processWavFile(const juce::String& inputFilePath, const juce::String& outputFilePath);
+    void loadLayers(String fileName);
+    float predict(Eigen::Matrix<float,N_SAMPLES,1> x);
+    void reDimension(std::vector<std::vector<std::vector<float>>> source,
+                              std::vector<std::vector<std::vector<float>>> &destination);
+    //void processWavFile(const juce::String& inputFilePath, const juce::String& outputFilePath);
     
 private:
     int samplesProcessed = 0;
@@ -47,43 +43,42 @@ private:
     void hiddenLayerForward (uint index);
     
     static constexpr int hiddenLayerDepth=18; //hidden layer size
-                                          // filters_per_group = 1 = in_size/num_groups => num_groups = in_size
     
-    
-    // Conv1DT<double, input_channels, output_channels, kernel_size, dilation, groups = >
-
-    RTNeural::Conv1DT<double,1,N_CHANNELS,1,1,GROUPS, DYN_STATE> inputLayer;
-    RTNeural::SigmoidActivationT<double, N_CHANNELS> hiddenGateActivation[18];
-    RTNeural::TanhActivationT<double, N_CHANNELS> hiddenFilterActivation[18];
-    RTNeural::Conv1DT<double,N_CHANNELS,N_CHANNELS,1,1, GROUPS, DYN_STATE> hiddenLayerResidual[17];
-
-    RTNeural::Conv1DT<double, 288,1,1,1,1> outputLayer;
-   // Conv1DT<<#typename T#>, <#int in_sizet#>, <#int out_sizet#>, <#int kernel_size#>, <#int dilation_rate#>>
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,1,GROUPS, DYN_STATE> gate_1[2];   // channels_per_group = out_size/num_groups = 16
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,2,GROUPS, DYN_STATE> gate_2[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,4,GROUPS, DYN_STATE> gate_4[2];   // Conv1FT < Type, in_size,out_size,kernel_size,dilation,groups>
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,8,GROUPS, DYN_STATE> gate_8[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,16,GROUPS, DYN_STATE> gate_16[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,32,GROUPS, DYN_STATE> gate_32[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,64,GROUPS, DYN_STATE> gate_64[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,128,GROUPS, DYN_STATE> gate_128[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,256,GROUPS, DYN_STATE> gate_256[2];
-
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,1,GROUPS, DYN_STATE> filter_1[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,2,GROUPS, DYN_STATE> filter_2[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,4,GROUPS, DYN_STATE> filter_4[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,8,GROUPS, DYN_STATE> filter_8[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,16,GROUPS, DYN_STATE> filter_16[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,32,GROUPS, DYN_STATE> filter_32[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,64,GROUPS, DYN_STATE> filter_64[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,128,GROUPS, DYN_STATE> filter_128[2];
-    Conv1DT<double,N_CHANNELS,N_CHANNELS,3,256,GROUPS, DYN_STATE> filter_256[2];
+    Conv1DT<float,N_SAMPLES,N_SAMPLES*N_CHANNELS,3,1,GROUPS, DYN_STATE> inputLayer;
+    SigmoidActivationT<float, N_CHANNELS*N_SAMPLES> hiddenGateActivation[18];
+    TanhActivationT<float, N_CHANNELS*N_SAMPLES> hiddenFilterActivation[18];
+ 
+    // usage of Conv1D layer: Conv1DT<<#typename T#>, <#int in_sizet#>, <#int out_sizet#>, <#int kernel_size#>, <#int dilation_rate#>>
+    // Hidden Layer declarations
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,1,1, GROUPS, DYN_STATE> hiddenLayerResidual[17];
+    // Gate ie: gate_n corresponds to a Conv1D gate layer with dilation factor n
+    //          gate_n[r] is the r ocurrence of a gate with n dilation factor. r = {0,1}, in this case.
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,1,GROUPS, DYN_STATE> gate_1[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,2,GROUPS, DYN_STATE> gate_2[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,4,GROUPS, DYN_STATE> gate_4[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,8,GROUPS, DYN_STATE> gate_8[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,16,GROUPS, DYN_STATE> gate_16[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,32,GROUPS, DYN_STATE> gate_32[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,64,GROUPS, DYN_STATE> gate_64[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,128,GROUPS, DYN_STATE> gate_128[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,256,GROUPS, DYN_STATE> gate_256[2];
+    // Filter ie:  filter_n corresponds to a Conv1D gate layer with dilation factor n
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,1,GROUPS, DYN_STATE> filter_1[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,2,GROUPS, DYN_STATE> filter_2[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,4,GROUPS, DYN_STATE> filter_4[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,8,GROUPS, DYN_STATE> filter_8[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,16,GROUPS, DYN_STATE> filter_16[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,32,GROUPS, DYN_STATE> filter_32[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,64,GROUPS, DYN_STATE> filter_64[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,128,GROUPS, DYN_STATE> filter_128[2];
+    Conv1DT<float,N_CHANNELS*N_SAMPLES,N_CHANNELS*N_SAMPLES,3,256,GROUPS, DYN_STATE> filter_256[2];
    
-    
-    Eigen::Matrix<double,N_CHANNELS,1> outGateBuffer;//16
-    Eigen::Matrix<double,N_CHANNELS,1> outFilterBuffer;//16
-    
-    Eigen::Matrix<double,hiddenLayerDepth*N_CHANNELS,1> zout;
+    //Output Layer
+    Conv1DT<float, hiddenLayerDepth*N_CHANNELS*N_SAMPLES,N_SAMPLES,1,1,1,DYN_STATE> outputLayer;
+    //Auxiliary Buffers
+    Eigen::Matrix<float,N_SAMPLES*N_CHANNELS,1> outGateBuffer;//16
+    Eigen::Matrix<float,N_SAMPLES*N_CHANNELS,1> hiddenInBuffer;//16
+    Eigen::Matrix<float,hiddenLayerDepth*N_CHANNELS*N_SAMPLES,1> zout;
+
+
 };
-
-

@@ -819,9 +819,10 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" microphonePermissionNeeded="1">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="0" name="waveNetFx" targetName="waveNetFx" optimisation="6"
-                       linkTimeOptimisation="1" defines="RTNEURAL_USE_EIGEN=1&#10;EIGEN_STACK_ALLOCATION_LIMIT = 0&#10;RTNEURAL_DEFAULT_ALIGNMENT=32"
+                       linkTimeOptimisation="0" defines="RTNEURAL_USE_EIGEN=1&#10;EIGEN_STACK_ALLOCATION_LIMIT = 0&#10;RTNEURAL_DEFAULT_ALIGNMENT=16"
                        headerPath="/Users/maneu/Desktop/Tese/Wavenet2023/waveNetFX/waveNetFx/Source/modules/Eigen&#10;&#10;/Users/maneu/Desktop/Tese/Wavenet2023/waveNetFX/waveNetFx/Source/AudioFile"
-                       vst3BinaryLocation="$(HOME)/Library/Audio/Plug-Ins/VST3" auBinaryLocation="$(HOME)/Library/Audio/Plug-Ins/Components"/>
+                       vst3BinaryLocation="$(HOME)/Library/Audio/Plug-Ins/VST3" auBinaryLocation="$(HOME)/Library/Audio/Plug-Ins/Components"
+                       enablePluginBinaryCopyStep="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../JUCE-2/modules"/>
